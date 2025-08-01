@@ -1,5 +1,5 @@
 # Core Libraries
-gradio==4.29.0
+gradio
 openai-whisper
 torch
 transformers
