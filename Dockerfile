@@ -4,6 +4,8 @@ FROM python:3.10-slim
 # Set the working directory inside the container
 WORKDIR /app
 
+RUN mkdir -p /app/cache
+
 # Copy the requirements file into the container
 COPY requirements.txt requirements.txt
 
