@@ -1,4 +1,4 @@
-# app.py
+import os
 import gradio as gr
 import whisper
 import torch
@@ -6,7 +6,15 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import numpy as np
 import librosa
 import time
-import os
+
+# --- Configuration for Cache Directories (ADD THIS BLOCK FIRST) ---
+# Set cache directories to a writable location within the container
+CACHE_DIR = "/app/cache" # Or "/tmp/cache"
+os.makedirs(CACHE_DIR, exist_ok=True) # Ensure the directory exists
+os.environ["HF_HOME"] = CACHE_DIR # Hugging Face cache
+os.environ["TORCH_HOME"] = CACHE_DIR # Torch cache (might be used by some models)
+# Whisper uses a specific download function, we'll handle its cache in the load call
+
 # --- Configuration ---
 # Whisper model name should be the local name (e.g., 'tiny', 'base')
 # 'tiny' is multilingual, 'tiny.en' is English-only but faster/ more accurate for English
@@ -15,20 +23,23 @@ LLM_MODEL_NAME = os.getenv("LLM_MODEL", "google/gemma-2b-it") # Hugging Face mod
 HF_TOKEN = os.getenv("HF_TOKEN") # Get token from environment variable
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
+print(f"Using cache directory: {CACHE_DIR}")
 
-# --- Load Models (on startup) ---
+#--- Load Models (on startup) ---
 print("Loading Whisper model...")
 # Whisper expects the local model name directly
-whisper_model = whisper.load_model(WHISPER_MODEL_NAME)
+# Pass the download_root argument to specify the cache location for Whisper models
+whisper_model = whisper.load_model(WHISPER_MODEL_NAME, download_root=os.path.join(CACHE_DIR, "whisper"))
 
 print("Loading LLM tokenizer and model...")
-llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN)
+llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR) # Add cache_dir
 # Load model with optimizations for CPU/Memory if needed
 llm_model = AutoModelForCausalLM.from_pretrained(
     LLM_MODEL_NAME,
     token=HF_TOKEN,
     torch_dtype=torch.bfloat16 if DEVICE == "cuda" else torch.float32,
-    device_map="auto", # Automatically distribute across available devices
+    device_map="auto",
+    cache_dir=CACHE_DIR # Add cache_dir # Automatically distribute across available devices
     # low_cpu_mem_usage=True # Can help on limited RAM, might be implicit with device_map
 )
 
