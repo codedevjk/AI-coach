@@ -7,17 +7,19 @@ import numpy as np
 import librosa
 import time
 import os
-
 # --- Configuration ---
-WHISPER_MODEL_NAME = os.getenv("WHISPER_MODEL", "openai/whisper-tiny") # Allow env override
-LLM_MODEL_NAME = os.getenv("LLM_MODEL", "google/gemma-2b-it") # Allow env override
+# Whisper model name should be the local name (e.g., 'tiny', 'base')
+# 'tiny' is multilingual, 'tiny.en' is English-only but faster/ more accurate for English
+WHISPER_MODEL_NAME = os.getenv("WHISPER_MODEL", "tiny")
+LLM_MODEL_NAME = os.getenv("LLM_MODEL", "google/gemma-2b-it") # Hugging Face model ID
 HF_TOKEN = os.getenv("HF_TOKEN") # Get token from environment variable
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 
 # --- Load Models (on startup) ---
 print("Loading Whisper model...")
-whisper_model = whisper.load_model(WHISPER_MODEL_NAME.split('/')[-1]) # Whisper uses local names
+# Whisper expects the local model name directly
+whisper_model = whisper.load_model(WHISPER_MODEL_NAME)
 
 print("Loading LLM tokenizer and model...")
 llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN)
