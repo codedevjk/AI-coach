@@ -1,0 +1,12 @@
+# Core Libraries
+gradio==4.29.0
+openai-whisper
+torch
+transformers
+huggingface_hub
+numpy
+librosa
+# SentencePiece is often needed for LLM tokenizers like Gemma
+sentencepiece
+# Accelerate can help with running models, especially on limited hardware
+accelerate
