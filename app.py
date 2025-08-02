@@ -845,6 +845,7 @@ custom_theme = gr.themes.Soft(
 
 def process_interview(role, question, audio_file):
     """Main processing function that ties everything together."""
+    print(f"DEBUG: process_interview called with audio_file={audio_file}") # Add this
     start_time = time.time()
     transcription = transcribe_audio(audio_file)
     # Removed audio_features call
@@ -985,12 +986,13 @@ with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as de
              question_dropdown = gr.Dropdown(choices=[], label="❓ Select Question")
     
     # Audio input section
+# Inside your Gradio Blocks layout, near the audio input:
     with gr.Row():
         with gr.Column():
-            audio_input = gr.Audio(label="🎤 Record Your Answer", type="filepath")
+            gr.Markdown("**Instructions:** Record your answer and click 'Submit & Get Feedback' immediately.")
+            audio_input = gr.Audio(label="🎤 Record Your Answer", type="filepath", autoplay=False, show_download_button=True)
             transcribe_btn = gr.Button("🚀 Submit & Get Feedback")
-
-    # Output sections
+        # Output sections
     with gr.Column():
         transcription_output = gr.Textbox(label="📝 Transcription")
         # As per your request, keep these for now but hidden or remove them
