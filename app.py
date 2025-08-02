@@ -895,8 +895,10 @@ roles = ["React",
     "Apache Kafka",
     "Elasticsearch"]
 
-with gr.Blocks(title="AI Interview Simulator") as demo:
-     # Add custom CSS for additional styling
+custom_theme = gr.themes.Soft()
+
+with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as demo:
+    # Add custom CSS for additional styling (example)
     gr.Markdown("""
     <style>
     /* Custom styles for the entire app */
@@ -972,13 +974,13 @@ with gr.Blocks(title="AI Interview Simulator") as demo:
     </style>
     """)
     
-    gr.Markdown('<h1 class="main-title">🎙️ AI Interview Simulator</h1>', elem_id="main-title")
-    gr.Markdown('<p class="subtitle">Practice your interview skills and get instant AI feedback!</p>', elem_id="subtitle")
+    # Custom Title and Subtitle using Markdown
+    gr.Markdown('<h1 class="main-title">🎙️ AI Interview Simulator</h1>')
+    gr.Markdown('<p class="subtitle">Practice your interview skills and get instant AI feedback!</p>')
 
     # Main content area
     with gr.Row():
-        # Use a column for better layout control
-        with gr.Column(scale=1): # Role selection column
+        with gr.Column(scale=1):
              role_dropdown = gr.Dropdown(choices=roles, label="💼 Select Job Role", value="React")
              question_dropdown = gr.Dropdown(choices=[], label="❓ Select Question")
     
@@ -986,43 +988,39 @@ with gr.Blocks(title="AI Interview Simulator") as demo:
     with gr.Row():
         with gr.Column():
             audio_input = gr.Audio(label="🎤 Record Your Answer", type="filepath")
-            transcribe_btn = gr.Button("🚀 Submit & Get Feedback", elem_classes=["custom-button"])
+            transcribe_btn = gr.Button("🚀 Submit & Get Feedback")
 
+    # Output sections
+    with gr.Column():
+        transcription_output = gr.Textbox(label="📝 Transcription")
+        # As per your request, keep these for now but hidden or remove them
+        pace_output = gr.Textbox(label="⏱️ Speaking Pace", visible=False) # Hide if not used
+        filler_output = gr.Textbox(label="🤫 Filler Words Detected", visible=False) # Hide if not used
+        feedback_output = gr.Textbox(label="🤖 AI Feedback", lines=12, elem_id="feedback-box")
+        status_output = gr.Textbox(label="ℹ️ Status", elem_id="status-box")
 
-    # Update questions based on role
     def update_questions(selected_role):
         questions = get_interview_questions(selected_role)
         return gr.update(choices=questions, value=questions[0] if questions else "")
 
+    # Connect the role dropdown change to update questions
     role_dropdown.change(fn=update_questions, inputs=role_dropdown, outputs=question_dropdown)
-
-    audio_input = gr.Audio(label="Record Your Answer", type="filepath")
-    transcribe_btn = gr.Button("Submit & Get Feedback")
-
-    with gr.Column():
-        transcription_output = gr.Textbox(label="📝 Transcription")
-        # Group pace and filler for layout
-        # with gr.Row(): # Optional: Group these horizontally if desired
-        #     pace_output = gr.Textbox(label="⏱️ Speaking Pace")
-        #     filler_output = gr.Textbox(label="🤫 Filler Words Detected")
-        # For now, keep them vertical as per request to remove logic
-        feedback_output = gr.Textbox(label="🤖 AI Feedback", lines=12, elem_id="feedback-box")
-        status_output = gr.Textbox(label="ℹ️ Status", elem_id="status-box")
-
-        # Inside Gradio Blocks context...
-     transcribe_btn.click(
+    
+    # Connect the submit button to the processing function
+    # Ensure this line is correctly indented INSIDE the 'with gr.Blocks(...) as demo:' block
+    transcribe_btn.click( # <-- This line should now be correctly placed and indented
         fn=process_interview,
         inputs=[role_dropdown, question_dropdown, audio_input],
         # Adjust outputs list if you removed pace/filler logic in the function
-        # Assuming you kept the function signature returning 5 items for now
-        outputs=[transcription_output, gr.Textbox(visible=False), gr.Textbox(visible=False), feedback_output, status_output] # Hide pace/filler
-        # If you modified process_interview to return only 3 items, use:
+        # Option 1: If process_interview still returns 5 items:
+        outputs=[transcription_output, pace_output, filler_output, feedback_output, status_output]
+        # Option 2: If you modified process_interview to return only 3 items, use:
         # outputs=[transcription_output, feedback_output, status_output]
     )
     
     # Initialize questions on load
     demo.load(fn=update_questions, inputs=role_dropdown, outputs=question_dropdown)
 
-# Launch the app (unchanged)
+# Launch the app (This part stays OUTSIDE the Blocks context)
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
