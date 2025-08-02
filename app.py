@@ -835,6 +835,14 @@ Keep the feedback professional, encouraging, and actionable. Do not mention this
     print(f"Generated Feedback: {feedback}")
     return feedback
 
+# Use a base theme for a good starting point
+custom_theme = gr.themes.Soft(
+    primary_hue="blue",          # Main color theme
+    secondary_hue="purple",      # Secondary accents
+    neutral_hue="gray",          # Backgrounds, text
+    font=[gr.themes.GoogleFont('Inter'), 'ui-sans-serif', 'system-ui'], # Modern font
+)
+
 def process_interview(role, question, audio_file):
     """Main processing function that ties everything together."""
     start_time = time.time()
@@ -888,11 +896,98 @@ roles = ["React",
     "Elasticsearch"]
 
 with gr.Blocks(title="AI Interview Simulator") as demo:
-    gr.Markdown("## 🎙️ AI Interview Simulator")
-    gr.Markdown("Practice your interview skills and get instant AI feedback!")
+     # Add custom CSS for additional styling
+    gr.Markdown("""
+    <style>
+    /* Custom styles for the entire app */
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
+        font-family: 'Inter', sans-serif;
+    }
+    /* Style the main title */
+    .main-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+        font-weight: 700;
+    }
+    /* Style the subtitle */
+    .subtitle {
+    text-align: center;
+        color: #7f8c8d;
+        margin-bottom: 30px;
+        font-size: 1.2em;
+    }
+    /* Style the main container */
+    .gradio-container {
+        border-radius: 15px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(10px);
+        padding: 30px !important;
+        max-width: 900px;
+        margin: 40px auto;
+    }
+    /* Style buttons */
+    button {
+        background: linear-gradient(to right, #3498db, #8e44ad) !important;
+        border: none !important;
+        color: white !important;
+        padding: 12px 24px !important;
+        border-radius: 30px !important;
+        font-weight: bold !important;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    /* Style dropdowns */
+    .wrap-inner.wrap-inner.wrap-inner {
+        border-radius: 10px !important;
+    }
+    /* Style the audio recorder */
+    .audio.audio.audio {
+        border-radius: 15px !important;
+        border: 2px dashed #3498db !important;
+    }
+    /* Style textboxes */
+    .output-markdown.output-markdown.output-markdown {
+        border-radius: 10px !important;
+        background-color: #f8f9fa !important;
+        padding: 15px !important;
+    }
+    /* Style the feedback section specifically */
+    #feedback-box {
+        background: linear-gradient(120deg, #fdfbfb 0%, #eef2f5 100%) !important;
+        border-left: 5px solid #3498db !important;
+    }
+    /* Status box styling */
+    #status-box {
+        font-style: italic;
+        color: #27ae60;
+    }
+    </style>
+    """)
+    
+    gr.Markdown('<h1 class="main-title">🎙️ AI Interview Simulator</h1>', elem_id="main-title")
+    gr.Markdown('<p class="subtitle">Practice your interview skills and get instant AI feedback!</p>', elem_id="subtitle")
+
+    # Main content area
     with gr.Row():
-        role_dropdown = gr.Dropdown(choices=roles, label="Select Job Role", value="React")
-        question_dropdown = gr.Dropdown(choices=[], label="Select Question")
+        # Use a column for better layout control
+        with gr.Column(scale=1): # Role selection column
+             role_dropdown = gr.Dropdown(choices=roles, label="💼 Select Job Role", value="React")
+             question_dropdown = gr.Dropdown(choices=[], label="❓ Select Question")
+    
+    # Audio input section
+    with gr.Row():
+        with gr.Column():
+            audio_input = gr.Audio(label="🎤 Record Your Answer", type="filepath")
+            transcribe_btn = gr.Button("🚀 Submit & Get Feedback", elem_classes=["custom-button"])
+
 
     # Update questions based on role
     def update_questions(selected_role):
@@ -905,23 +1000,29 @@ with gr.Blocks(title="AI Interview Simulator") as demo:
     transcribe_btn = gr.Button("Submit & Get Feedback")
 
     with gr.Column():
-        transcription_output = gr.Textbox(label="Transcription")
-        #pace_output = gr.Textbox(label="Speaking Pace")
-       # filler_output = gr.Textbox(label="Filler Words Detected")
-        feedback_output = gr.Textbox(label="AI Feedback", lines=10)
-        status_output = gr.Textbox(label="Status")
+        transcription_output = gr.Textbox(label="📝 Transcription")
+        # Group pace and filler for layout
+        # with gr.Row(): # Optional: Group these horizontally if desired
+        #     pace_output = gr.Textbox(label="⏱️ Speaking Pace")
+        #     filler_output = gr.Textbox(label="🤫 Filler Words Detected")
+        # For now, keep them vertical as per request to remove logic
+        feedback_output = gr.Textbox(label="🤖 AI Feedback", lines=12, elem_id="feedback-box")
+        status_output = gr.Textbox(label="ℹ️ Status", elem_id="status-box")
 
         # Inside Gradio Blocks context...
-    transcribe_btn.click(
+     transcribe_btn.click(
         fn=process_interview,
         inputs=[role_dropdown, question_dropdown, audio_input],
-        outputs=[transcription_output, feedback_output, status_output] # Match the function's return
+        # Adjust outputs list if you removed pace/filler logic in the function
+        # Assuming you kept the function signature returning 5 items for now
+        outputs=[transcription_output, gr.Textbox(visible=False), gr.Textbox(visible=False), feedback_output, status_output] # Hide pace/filler
+        # If you modified process_interview to return only 3 items, use:
+        # outputs=[transcription_output, feedback_output, status_output]
     )
-
+    
     # Initialize questions on load
     demo.load(fn=update_questions, inputs=role_dropdown, outputs=question_dropdown)
 
-# Launch the app, listening on all interfaces (important for Docker)
-# The port must match EXPOSE in Dockerfile and app_port in README.md
+# Launch the app (unchanged)
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
