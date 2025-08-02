@@ -33,17 +33,35 @@ print("Loading Whisper model...")
 whisper_model = whisper.load_model(WHISPER_MODEL_NAME, download_root=os.path.join(CACHE_DIR, "whisper"))
 
 print("Loading LLM tokenizer and model...")
-llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR) # Add cache_dir
-# Load model with optimizations for CPU/Memory if needed
-llm_model = AutoModelForCausalLM.from_pretrained(
-    LLM_MODEL_NAME,
-    token=HF_TOKEN,
-    torch_dtype=torch.bfloat16 if DEVICE == "cuda" else torch.float32,
-    device_map="auto",
-    cache_dir=CACHE_DIR # Add cache_dir # Automatically distribute across available devices
-    # low_cpu_mem_usage=True # Can help on limited RAM, might be implicit with device_map
-)
+llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR)
 
+# Load model with explicit settings based on device
+if DEVICE == "cpu":
+    print("Loading LLM for CPU with low_memory usage settings...")
+    # Critical settings for CPU to avoid offload errors and reduce memory
+    llm_model = AutoModelForCausalLM.from_pretrained(
+        LLM_MODEL_NAME,
+        token=HF_TOKEN,
+        torch_dtype=torch.float32, # Use float32 for CPU stability
+        low_cpu_mem_usage=True,    # Crucial for loading on CPU with limited RAM
+        cache_dir=CACHE_DIR,
+        # DO NOT use device_map="auto" on CPU here, let PyTorch handle it
+    )
+    # Explicitly move the model to CPU (safeguard)
+    llm_model = llm_model.to(DEVICE)
+else: # DEVICE == "cuda"
+    print("Loading LLM for GPU...")
+    # Settings optimized for GPU
+    llm_model = AutoModelForCausalLM.from_pretrained(
+        LLM_MODEL_NAME,
+        token=HF_TOKEN,
+        torch_dtype=torch.bfloat16, # bfloat16 is efficient on modern GPUs
+        device_map="auto",          # Allow accelerate to manage GPU distribution
+        cache_dir=CACHE_DIR
+    )
+# Ensure the model is in evaluation mode
+llm_model.eval()
+print("LLM model loaded and set to eval mode.")
 # --- Helper Functions ---
 
 def get_interview_questions(role):
@@ -823,10 +841,10 @@ def process_interview(role, question, audio_file):
     """Main processing function that ties everything together."""
     start_time = time.time()
     transcription = transcribe_audio(audio_file)
-    audio_features = analyze_audio_features(audio_file)
+    #audio_features = analyze_audio_features(audio_file)
     feedback = generate_feedback(question, transcription, role)
     processing_time = time.time() - start_time
-    return transcription, audio_features.get("pace", "N/A"), audio_features.get("filler_words", "N/A"), feedback, f"Processing completed in {processing_time:.2f} seconds."
+    return transcription, feedback, f"Processing completed in {processing_time:.2f} seconds."
 
 # Define roles for dropdown
 roles = ["React",
