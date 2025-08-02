@@ -802,40 +802,6 @@ def transcribe_audio(audio_file_path):
     print(f"Transcription: {transcription}")
     return transcription
 
-def analyze_audio_features(audio_file_path):
-    """Analyzes audio for pace, pauses, etc."""
-    if not audio_file_path or not os.path.exists(audio_file_path):
-        return {"pace": "N/A", "filler_words": 0}
-    try:
-        # --- Disable Librosa Cache (Fix for Hugging Face Spaces) ---
-        # The librosa cache can fail in containerized environments.
-        # We explicitly disable it to prevent the '__o_fold' error.
-        import librosa.core
-        librosa.core.cache_level = 0 # Disable cache
-        # Suppress the specific warning that might still appear
-        warnings.filterwarnings("ignore", message=".*cannot cache function '__o_fold'.*")
-        # -----------------------------------------------------------
-
-        # Load audio file
-        y, sr = librosa.load(audio_file_path, sr=None)
-        # Calculate duration
-        duration = librosa.get_duration(y=y, sr=sr)
-        # Simple word count estimate (assuming average speaking rate)
-        # A more robust method would involve ASR word timestamps
-        words = transcribe_audio(audio_file_path).split()
-        word_count = len(words)
-        pace = word_count / duration if duration > 0 else 0 # words per second
-
-        # Count filler words (basic example)
-        filler_words = ["um", "uh", "like", "you know", "so", "basically"]
-        filler_count = sum(1 for word in words if word.lower() in filler_words)
-        return {"pace": f"{pace:.2f} words/sec", "filler_words": filler_count}
-    except Exception as e:
-        error_msg = f"Error: {e}"
-        print(f"Error analyzing audio features: {e}")
-        # Returning the error message can help diagnose UI issues faster
-        return {"pace": error_msg, "filler_words": error_msg}
-
 def generate_feedback(question, answer, role):
     """Generates feedback using the LLM."""
     if not answer.strip():
@@ -869,17 +835,16 @@ Keep the feedback professional, encouraging, and actionable. Do not mention this
     print(f"Generated Feedback: {feedback}")
     return feedback
 
-
-# --- Gradio Interface ---
 def process_interview(role, question, audio_file):
     """Main processing function that ties everything together."""
     start_time = time.time()
     transcription = transcribe_audio(audio_file)
-    audio_features = analyze_audio_features(audio_file)
+    # Removed audio_features call
     feedback = generate_feedback(question, transcription, role)
     processing_time = time.time() - start_time
-    return transcription, audio_features.get("pace", "N/A"), audio_features.get("filler_words", "N/A"), feedback, f"Processing completed in {processing_time:.2f} seconds."
-
+    # Cleaner return with only relevant outputs
+    return transcription, feedback, f"Processing completed in {processing_time:.2f} seconds."
+    # return transcription, feedback, f"Processing completed in {processing_time:.2f} seconds."
 # Define roles for dropdown
 roles = ["React",
     "JavaScript", 
@@ -941,15 +906,16 @@ with gr.Blocks(title="AI Interview Simulator") as demo:
 
     with gr.Column():
         transcription_output = gr.Textbox(label="Transcription")
-        pace_output = gr.Textbox(label="Speaking Pace")
-        filler_output = gr.Textbox(label="Filler Words Detected")
+        #pace_output = gr.Textbox(label="Speaking Pace")
+       # filler_output = gr.Textbox(label="Filler Words Detected")
         feedback_output = gr.Textbox(label="AI Feedback", lines=10)
         status_output = gr.Textbox(label="Status")
 
+        # Inside Gradio Blocks context...
     transcribe_btn.click(
         fn=process_interview,
         inputs=[role_dropdown, question_dropdown, audio_input],
-        outputs=[transcription_output, pace_output, filler_output, feedback_output, status_output]
+        outputs=[transcription_output, feedback_output, status_output] # Match the function's return
     )
 
     # Initialize questions on load
