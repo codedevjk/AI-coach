@@ -7,7 +7,7 @@ import numpy as np
 import librosa
 import time
 import warnings
-
+# Whisper uses a specific download function, we'll handle its cache in the load call
 # --- Configuration for Cache Directories (ADD THIS BLOCK FIRST) ---
 # Set cache directories to a writable location within the container
 CACHE_DIR = "/app/cache" # Or "/tmp/cache"
@@ -32,43 +32,24 @@ print("Loading Whisper model...")
 # Pass the download_root argument to specify the cache location for Whisper models
 whisper_model = whisper.load_model(WHISPER_MODEL_NAME, download_root=os.path.join(CACHE_DIR, "whisper"))
 
-# --- Load LLM Model (Robust CPU/GPU handling) ---
 print("Loading LLM tokenizer and model...")
-llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR)
-
-# Load model with explicit settings based on device
-if DEVICE == "cpu":
-    print("Loading LLM for CPU with low_memory usage settings...")
-    # Critical settings for CPU to avoid offload errors and reduce memory
-    llm_model = AutoModelForCausalLM.from_pretrained(
-        LLM_MODEL_NAME,
-        token=HF_TOKEN,
-        torch_dtype=torch.float32, # Use float32 for CPU stability
-        low_cpu_mem_usage=True,    # Crucial for loading on CPU with limited RAM
-        cache_dir=CACHE_DIR,
-        # DO NOT use device_map="auto" on CPU here, let PyTorch handle it
-    )
-    # Explicitly move the model to CPU (safeguard)
-    llm_model = llm_model.to(DEVICE)
-else: # DEVICE == "cuda"
-    print("Loading LLM for GPU...")
-    # Settings optimized for GPU
-    llm_model = AutoModelForCausalLM.from_pretrained(
-        LLM_MODEL_NAME,
-        token=HF_TOKEN,
-        torch_dtype=torch.bfloat16, # bfloat16 is efficient on modern GPUs
-        device_map="auto",          # Allow accelerate to manage GPU distribution
-        cache_dir=CACHE_DIR
-    )
-# Ensure the model is in evaluation mode
-llm_model.eval()
-print("LLM model loaded and set to eval mode.")
+llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR) # Add cache_dir
+# Load model with optimizations for CPU/Memory if needed
+llm_model = AutoModelForCausalLM.from_pretrained(
+    LLM_MODEL_NAME,
+    token=HF_TOKEN,
+    torch_dtype=torch.bfloat16 if DEVICE == "cuda" else torch.float32,
+    device_map="auto",
+    cache_dir=CACHE_DIR # Add cache_dir # Automatically distribute across available devices
+    # low_cpu_mem_usage=True # Can help on limited RAM, might be implicit with device_map
+)
 
 # --- Helper Functions ---
 
 def get_interview_questions(role):
     """Provides a list of questions based on the selected job role."""
     questions = {
+        
     "react": [
         "What is React and what are its key features?",
         "Explain the difference between functional and class components.",
@@ -802,6 +783,7 @@ def transcribe_audio(audio_file_path):
     print(f"Transcription: {transcription}")
     return transcription
 
+
 def generate_feedback(question, answer, role):
     """Generates feedback using the LLM."""
     if not answer.strip():
@@ -835,27 +817,17 @@ Keep the feedback professional, encouraging, and actionable. Do not mention this
     print(f"Generated Feedback: {feedback}")
     return feedback
 
-# Use a base theme for a good starting point
-custom_theme = gr.themes.Soft(
-    primary_hue="blue",          # Main color theme
-    secondary_hue="purple",      # Secondary accents
-    neutral_hue="gray",          # Backgrounds, text
-    font=[gr.themes.GoogleFont('Inter'), 'ui-sans-serif', 'system-ui'], # Modern font
-)
 
+# --- Gradio Interface ---
 def process_interview(role, question, audio_file):
     """Main processing function that ties everything together."""
-    print(f"DEBUG: process_interview called. Received audio_file path: '{audio_file}'") # Add this line
-    print(f"DEBUG: File exists? {os.path.exists(audio_file) if audio_file else 'No path provided'}") # Add this line
-    # ... rest of the function
     start_time = time.time()
     transcription = transcribe_audio(audio_file)
-    # Removed audio_features call
+    audio_features = analyze_audio_features(audio_file)
     feedback = generate_feedback(question, transcription, role)
     processing_time = time.time() - start_time
-    # Cleaner return with only relevant outputs
-    return transcription, feedback, f"Processing completed in {processing_time:.2f} seconds."
-    # return transcription, feedback, f"Processing completed in {processing_time:.2f} seconds."
+    return transcription, audio_features.get("pace", "N/A"), audio_features.get("filler_words", "N/A"), feedback, f"Processing completed in {processing_time:.2f} seconds."
+
 # Define roles for dropdown
 roles = ["React",
     "JavaScript", 
@@ -898,139 +870,41 @@ roles = ["React",
     "Apache Kafka",
     "Elasticsearch"]
 
-custom_theme = gr.themes.Soft()
 
-with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as demo:
-    # Add custom CSS for additional styling (example)
-    gr.Markdown("""
-    <style>
-    /* Custom styles for the entire app */
-    body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
-        font-family: 'Inter', sans-serif;
-    }
-    /* Style the main title */
-    .main-title {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        font-size: 2.5em;
-        font-weight: 700;
-    }
-    /* Style the subtitle */
-    .subtitle {
-    text-align: center;
-        color: #7f8c8d;
-        margin-bottom: 30px;
-        font-size: 1.2em;
-    }
-    /* Style the main container */
-    .gradio-container {
-        border-radius: 15px !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(10px);
-        padding: 30px !important;
-        max-width: 900px;
-        margin: 40px auto;
-    }
-    /* Style buttons */
-    button {
-        background: linear-gradient(to right, #3498db, #8e44ad) !important;
-        border: none !important;
-        color: white !important;
-        padding: 12px 24px !important;
-        border-radius: 30px !important;
-        font-weight: bold !important;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-    /* Style dropdowns */
-    .wrap-inner.wrap-inner.wrap-inner {
-        border-radius: 10px !important;
-    }
-    /* Style the audio recorder */
-    .audio.audio.audio {
-        border-radius: 15px !important;
-        border: 2px dashed #3498db !important;
-    }
-    /* Style textboxes */
-    .output-markdown.output-markdown.output-markdown {
-        border-radius: 10px !important;
-        background-color: #f8f9fa !important;
-        padding: 15px !important;
-    }
-    /* Style the feedback section specifically */
-    #feedback-box {
-        background: linear-gradient(120deg, #fdfbfb 0%, #eef2f5 100%) !important;
-        border-left: 5px solid #3498db !important;
-    }
-    /* Status box styling */
-    #status-box {
-        font-style: italic;
-        color: #27ae60;
-    }
-    </style>
-    """)
-    
-    # Custom Title and Subtitle using Markdown
-    gr.Markdown('<h1 class="main-title">🎙️ AI Interview Simulator</h1>')
-    gr.Markdown('<p class="subtitle">Practice your interview skills and get instant AI feedback!</p>')
-
-    # Main content area
+with gr.Blocks(title="AI Interview Simulator") as demo:
+    gr.Markdown("## 🎙️ AI Interview Simulator")
+    gr.Markdown("Practice your interview skills and get instant AI feedback!")
     with gr.Row():
-        with gr.Column(scale=1):
-             role_dropdown = gr.Dropdown(choices=roles, label="💼 Select Job Role", value="React")
-             question_dropdown = gr.Dropdown(choices=[], label="❓ Select Question")
-    
-    # Audio input section
-# Inside your Gradio Blocks layout, near the audio input:
-    # Inside your Gradio Blocks layout, near the audio input:
-    with gr.Row():
-        with gr.Column():
-            # Add very clear instructions
-            gr.Markdown("**🚨 Critical Workflow:**\n1. Click the red 'Record' button.\n2. Speak your answer.\n3. Click the 'Stop' button.\n4. **Click 'Submit & Get Feedback' immediately.**\n\nThe recording will disappear visually after stopping, but the system needs you to submit right away to process it.")
-            # Apply the updated audio component
-            audio_input = gr.Audio(
-                label="🎤 Record Your Answer",
-                type="filepath",
-                     # Explicitly state streaming mode
-            )
-            transcribe_btn = gr.Button("🚀 Submit & Get Feedback")
-        # Output sections
-    with gr.Column():
-        transcription_output = gr.Textbox(label="📝 Transcription")
-        # As per your request, keep these for now but hidden or remove them
-       
-        feedback_output = gr.Textbox(label="🤖 AI Feedback", lines=12, elem_id="feedback-box")
-        status_output = gr.Textbox(label="ℹ️ Status", elem_id="status-box")
+        role_dropdown = gr.Dropdown(choices=roles, label="Select Job Role", value="React")
+        question_dropdown = gr.Dropdown(choices=[], label="Select Question")
 
+    # Update questions based on role
     def update_questions(selected_role):
         questions = get_interview_questions(selected_role)
         return gr.update(choices=questions, value=questions[0] if questions else "")
 
-    # Connect the role dropdown change to update questions
     role_dropdown.change(fn=update_questions, inputs=role_dropdown, outputs=question_dropdown)
-    
-    # Connect the submit button to the processing function
-    # Ensure this line is correctly indented INSIDE the 'with gr.Blocks(...) as demo:' block
-    transcribe_btn.click( # <-- This line should now be correctly placed and indented
+
+    audio_input = gr.Audio(label="Record Your Answer", type="filepath")
+    transcribe_btn = gr.Button("Submit & Get Feedback")
+
+    with gr.Column():
+        transcription_output = gr.Textbox(label="Transcription")
+        #pace_output = gr.Textbox(label="Speaking Pace")
+        #filler_output = gr.Textbox(label="Filler Words Detected")
+        feedback_output = gr.Textbox(label="AI Feedback", lines=10)
+        status_output = gr.Textbox(label="Status")
+
+    transcribe_btn.click(
         fn=process_interview,
         inputs=[role_dropdown, question_dropdown, audio_input],
-        # Adjust outputs list if you removed pace/filler logic in the function
-        # Option 1: If process_interview still returns 5 items:
         outputs=[transcription_output, feedback_output, status_output]
-        # Option 2: If you modified process_interview to return only 3 items, use:
-        # outputs=[transcription_output, feedback_output, status_output]
     )
-    
+
     # Initialize questions on load
     demo.load(fn=update_questions, inputs=role_dropdown, outputs=question_dropdown)
 
-# Launch the app (This part stays OUTSIDE the Blocks context)
+# Launch the app, listening on all interfaces (important for Docker)
+# The port must match EXPOSE in Dockerfile and app_port in README.md
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
