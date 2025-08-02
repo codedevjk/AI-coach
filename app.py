@@ -994,8 +994,7 @@ with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as de
     with gr.Column():
         transcription_output = gr.Textbox(label="📝 Transcription")
         # As per your request, keep these for now but hidden or remove them
-        pace_output = gr.Textbox(label="⏱️ Speaking Pace", visible=False) # Hide if not used
-        filler_output = gr.Textbox(label="🤫 Filler Words Detected", visible=False) # Hide if not used
+       
         feedback_output = gr.Textbox(label="🤖 AI Feedback", lines=12, elem_id="feedback-box")
         status_output = gr.Textbox(label="ℹ️ Status", elem_id="status-box")
 
@@ -1013,7 +1012,7 @@ with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as de
         inputs=[role_dropdown, question_dropdown, audio_input],
         # Adjust outputs list if you removed pace/filler logic in the function
         # Option 1: If process_interview still returns 5 items:
-        outputs=[transcription_output, pace_output, filler_output, feedback_output, status_output]
+        outputs=[transcription_output, feedback_output, status_output]
         # Option 2: If you modified process_interview to return only 3 items, use:
         # outputs=[transcription_output, feedback_output, status_output]
     )
