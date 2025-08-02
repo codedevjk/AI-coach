@@ -31,17 +31,37 @@ print("Loading Whisper model...")
 # Pass the download_root argument to specify the cache location for Whisper models
 whisper_model = whisper.load_model(WHISPER_MODEL_NAME, download_root=os.path.join(CACHE_DIR, "whisper"))
 
+# --- Load LLM Model (Robust CPU/GPU handling) ---
 print("Loading LLM tokenizer and model...")
-llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR) # Add cache_dir
-# Load model with optimizations for CPU/Memory if needed
-llm_model = AutoModelForCausalLM.from_pretrained(
-    LLM_MODEL_NAME,
-    token=HF_TOKEN,
-    torch_dtype=torch.bfloat16 if DEVICE == "cuda" else torch.float32,
-    device_map="auto",
-    cache_dir=CACHE_DIR # Add cache_dir # Automatically distribute across available devices
-    # low_cpu_mem_usage=True # Can help on limited RAM, might be implicit with device_map
-)
+llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR)
+
+# Load model with explicit settings based on device
+if DEVICE == "cpu":
+    print("Loading LLM for CPU with low_memory usage settings...")
+    # Critical settings for CPU to avoid offload errors and reduce memory
+    llm_model = AutoModelForCausalLM.from_pretrained(
+        LLM_MODEL_NAME,
+        token=HF_TOKEN,
+        torch_dtype=torch.float32, # Use float32 for CPU stability
+        low_cpu_mem_usage=True,    # Crucial for loading on CPU with limited RAM
+        cache_dir=CACHE_DIR,
+        # DO NOT use device_map="auto" on CPU here, let PyTorch handle it
+    )
+    # Explicitly move the model to CPU (safeguard)
+    llm_model = llm_model.to(DEVICE)
+else: # DEVICE == "cuda"
+    print("Loading LLM for GPU...")
+    # Settings optimized for GPU
+    llm_model = AutoModelForCausalLM.from_pretrained(
+        LLM_MODEL_NAME,
+        token=HF_TOKEN,
+        torch_dtype=torch.bfloat16, # bfloat16 is efficient on modern GPUs
+        device_map="auto",          # Allow accelerate to manage GPU distribution
+        cache_dir=CACHE_DIR
+    )
+# Ensure the model is in evaluation mode
+llm_model.eval()
+print("LLM model loaded and set to eval mode.")
 
 # --- Helper Functions ---
 
@@ -895,7 +915,7 @@ with gr.Blocks(title="AI Interview Simulator") as demo:
     gr.Markdown("## 🎙️ AI Interview Simulator")
     gr.Markdown("Practice your interview skills and get instant AI feedback!")
     with gr.Row():
-        role_dropdown = gr.Dropdown(choices=roles, label="Select Job Role", value="general")
+        role_dropdown = gr.Dropdown(choices=roles, label="Select Job Role", value="React")
         question_dropdown = gr.Dropdown(choices=[], label="Select Question")
 
     # Update questions based on role
