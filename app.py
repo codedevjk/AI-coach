@@ -68,7 +68,7 @@ print("LLM model loaded and set to eval mode.")
 def get_interview_questions(role):
     """Provides a list of questions based on the selected job role."""
     questions = {
-        "React": [
+    "react": [
         "What is React and what are its key features?",
         "Explain the difference between functional and class components.",
         "What is JSX and how does it work?",
@@ -86,7 +86,7 @@ def get_interview_questions(role):
         "How do you handle forms in React?"
     ],
     
-    "JavaScript": [
+    "javascript": [
         "What are the different data types in JavaScript?",
         "Explain hoisting in JavaScript.",
         "What is the difference between var, let, and const?",
@@ -104,7 +104,7 @@ def get_interview_questions(role):
         "What is the difference between synchronous and asynchronous programming?"
     ],
     
-    "Java": [
+    "java": [
         "Explain the differences between JDK, JRE, and JVM.",
         "What are the main principles of OOPs (Object-Oriented Programming) in Java?",
         "What is the difference between `==` and `.equals()` method in Java?",
@@ -122,7 +122,7 @@ def get_interview_questions(role):
         "What are the access modifiers in Java? Explain `public`, `private`, `protected`, and default."
     ],
     
-    "Python": [
+    "python": [
         "What are the key features of Python?",
         "Explain the difference between lists, tuples, and dictionaries.",
         "What are decorators in Python?",
@@ -140,7 +140,7 @@ def get_interview_questions(role):
         "What are context managers and the 'with' statement?"
     ],
     
-    "SQL": [
+    "sql": [
         "What is the difference between SQL and NoSQL databases?",
         "Explain the different types of SQL joins.",
         "What is normalization and its different forms?",
@@ -158,7 +158,7 @@ def get_interview_questions(role):
         "What are window functions and their use cases?"
     ],
     
-    "Angular": [
+    "angular": [
         "What is Angular and how does it differ from AngularJS?",
         "Explain the Angular architecture and its building blocks.",
         "What are components, services, and modules in Angular?",
@@ -176,7 +176,7 @@ def get_interview_questions(role):
         "What are guards in Angular routing?"
     ],
     
-    "Node.js": [
+    "node.js": [
         "What is Node.js and how does it work?",
         "Explain the event loop in Node.js.",
         "What is the difference between synchronous and asynchronous operations?",
@@ -194,7 +194,7 @@ def get_interview_questions(role):
         "Explain RESTful API development with Node.js."
     ],
     
-    "AWS": [
+    "aws": [
         "What is cloud computing and its service models (IaaS, PaaS, SaaS)?",
         "What are the core services of AWS?",
         "Explain EC2 and its instance types.",
@@ -212,7 +212,7 @@ def get_interview_questions(role):
         "Explain disaster recovery strategies in AWS."
     ],
     
-    "Docker": [
+    "docker": [
         "What is Docker and containerization?",
         "What is the difference between containers and virtual machines?",
         "Explain Docker architecture and its components.",
@@ -230,7 +230,7 @@ def get_interview_questions(role):
         "Explain Docker security best practices."
     ],
     
-    "Kubernetes": [
+    "kubernetes": [
         "What is Kubernetes and its architecture?",
         "Explain pods, nodes, and clusters in Kubernetes.",
         "What are services and their types in Kubernetes?",
@@ -248,7 +248,7 @@ def get_interview_questions(role):
         "What are resource quotas and limits?"
     ],
     
-    "Git": [
+    "git": [
         "What is Git and how does it differ from other VCS?",
         "Explain the Git workflow and basic commands.",
         "What is the difference between git merge and git rebase?",
@@ -266,7 +266,7 @@ def get_interview_questions(role):
         "How do you configure Git for team collaboration?"
     ],
     
-    "Machine Learning": [
+    "machine learning": [
         "Describe a machine learning project you've worked on.",
         "How do you handle overfitting in your models?",
         "Explain the Bias-Variance Tradeoff.",
@@ -284,7 +284,7 @@ def get_interview_questions(role):
         "What are evaluation metrics for ML models?"
     ],
     
-    "Data Science": [
+    "data science": [
         "How do you approach cleaning a messy dataset?",
         "Tell me about a time you discovered an interesting insight in data.",
         "What tools do you use for data visualization?",
@@ -302,7 +302,7 @@ def get_interview_questions(role):
         "What are some common data visualization techniques, and when would you use them?"
     ],
     
-    "DevOps": [
+    "devops": [
         "What is DevOps and its core principles?",
         "Explain the DevOps lifecycle and methodologies.",
         "What is CI/CD and its benefits?",
@@ -320,7 +320,7 @@ def get_interview_questions(role):
         "What are the cultural aspects of DevOps adoption?"
     ],
     
-    "Microservices": [
+    "microservices": [
         "What are microservices and their characteristics?",
         "What is the difference between monolithic and microservices architecture?",
         "What are the benefits and challenges of microservices?",
@@ -338,7 +338,7 @@ def get_interview_questions(role):
         "What are the best practices for microservices deployment?"
     ],
     
-    "REST API": [
+    "rest api": [
         "What is REST and its architectural principles?",
         "What are HTTP methods and their usage in REST?",
         "What is the difference between REST and SOAP?",
@@ -356,7 +356,7 @@ def get_interview_questions(role):
         "What is OpenAPI/Swagger specification?"
     ],
     
-    "Cloud Computing": [
+    "cloud computing": [
         "What is cloud computing and its characteristics?",
         "Explain the cloud service models (IaaS, PaaS, SaaS).",
         "What are the cloud deployment models?",
@@ -374,7 +374,7 @@ def get_interview_questions(role):
         "What are the major cloud service providers and their offerings?"
     ],
     
-    "Spring Boot": [
+    "spring boot": [
         "What is Spring Boot and its advantages?",
         "Explain the Spring Boot architecture.",
         "What are Spring Boot starters and their purpose?",
@@ -392,7 +392,7 @@ def get_interview_questions(role):
         "How do you deploy Spring Boot applications?"
     ],
     
-    "Linux": [
+    "linux": [
         "What is Linux and its key features?",
         "Explain the Linux file system hierarchy.",
         "What are the basic Linux commands for file operations?",
@@ -410,7 +410,7 @@ def get_interview_questions(role):
         "What are log files and their importance?"
     ],
     
-    "Agile": [
+    "agile": [
         "What is Agile methodology and its principles?",
         "Explain the difference between Agile and Waterfall.",
         "What are the popular Agile frameworks (Scrum, Kanban)?",
@@ -428,7 +428,7 @@ def get_interview_questions(role):
         "How do you estimate user stories in Agile?"
     ],
     
-    "TypeScript": [
+    "typescript": [
         "What is TypeScript and its advantages over JavaScript?",
         "Explain the basic types in TypeScript.",
         "What are interfaces in TypeScript?",
@@ -446,7 +446,7 @@ def get_interview_questions(role):
         "What is the difference between TypeScript and JavaScript compilation?"
     ],
     
-    "C#": [
+    "c#": [
         "What is C# and its key features?",
         "Explain the .NET framework and .NET Core.",
         "What are the basic data types in C#?",
@@ -464,7 +464,7 @@ def get_interview_questions(role):
         "What are nullable types in C#?"
     ],
     
-    "ASP.NET": [
+    "asp.net": [
         "What is ASP.NET and its architecture?",
         "Explain the difference between ASP.NET Web Forms and ASP.NET MVC.",
         "What is the MVC pattern and how is it implemented in ASP.NET?",
@@ -482,7 +482,7 @@ def get_interview_questions(role):
         "How do you implement caching in ASP.NET?"
     ],
     
-    "MongoDB": [
+    "mongodb": [
         "What is MongoDB and its key features?",
         "Explain the difference between SQL and NoSQL databases.",
         "What are documents and collections in MongoDB?",
@@ -500,7 +500,7 @@ def get_interview_questions(role):
         "What are the best practices for MongoDB schema design?"
     ],
     
-    "PostgreSQL": [
+    "postgresql": [
         "What is PostgreSQL and its key features?",
         "Explain the architecture of PostgreSQL.",
         "What are the data types supported by PostgreSQL?",
@@ -518,7 +518,7 @@ def get_interview_questions(role):
         "What are the performance tuning techniques for PostgreSQL?"
     ],
     
-    "Redis": [
+    "redis": [
         "What is Redis and its key features?",
         "Explain the data structures supported by Redis.",
         "What is the difference between Redis and traditional databases?",
@@ -536,7 +536,7 @@ def get_interview_questions(role):
         "What are the common use cases for Redis?"
     ],
     
-    "TensorFlow": [
+    "tensorflow": [
         "What is TensorFlow and its key components?",
         "Explain the difference between TensorFlow 1.x and 2.x.",
         "What are tensors and computational graphs in TensorFlow?",
@@ -554,7 +554,7 @@ def get_interview_questions(role):
         "What are the best practices for TensorFlow model optimization?"
     ],
     
-    "PyTorch": [
+    "pytorch": [
         "What is PyTorch and its key features?",
         "Explain the difference between PyTorch and TensorFlow.",
         "What are tensors and autograd in PyTorch?",
@@ -572,7 +572,7 @@ def get_interview_questions(role):
         "What are the best practices for PyTorch model development?"
     ],
     
-    "Jenkins": [
+    "jenkins": [
         "What is Jenkins and its key features?",
         "Explain the Jenkins architecture and components.",
         "What are Jenkins pipelines and their types?",
@@ -590,7 +590,7 @@ def get_interview_questions(role):
         "What are the best practices for Jenkins pipeline development?"
     ],
     
-    "Terraform": [
+    "terraform": [
         "What is Terraform and Infrastructure as Code?",
         "Explain the Terraform workflow and lifecycle.",
         "What are Terraform providers and resources?",
@@ -608,7 +608,7 @@ def get_interview_questions(role):
         "What are the best practices for Terraform development?"
     ],
     
-    "React Native": [
+    "react native": [
         "What is React Native and how does it differ from React?",
         "Explain the architecture of React Native applications.",
         "What is the bridge in React Native and how does it work?",
@@ -626,7 +626,7 @@ def get_interview_questions(role):
         "How do you test React Native applications?"
     ],
     
-    "Flutter": [
+    "flutter": [
         "What is Flutter and what are its key advantages?",
         "Explain the Flutter architecture and its components.",
         "What is Dart and why is it used in Flutter?",
@@ -644,7 +644,7 @@ def get_interview_questions(role):
         "How do you optimize Flutter app performance?"
     ],
     
-    "Vue.js": [
+    "vue.js": [
         "What is Vue.js and its key features?",
         "Explain the Vue.js lifecycle hooks.",
         "What is the Vue instance and its properties?",
@@ -662,7 +662,7 @@ def get_interview_questions(role):
         "How do you optimize Vue.js application performance?"
     ],
     
-    "Next.js": [
+    "next.js": [
         "What is Next.js and its key features?",
         "Explain the different rendering methods in Next.js (SSR, SSG, CSR).",
         "What is the difference between getServerSideProps and getStaticProps?",
@@ -680,7 +680,7 @@ def get_interview_questions(role):
         "What are the performance optimization techniques in Next.js?"
     ],
     
-    "Cybersecurity": [
+    "cybersecurity": [
         "What are the fundamental principles of cybersecurity (CIA Triad)?",
         "Explain the different types of cyber threats and attacks.",
         "What is the difference between vulnerability, threat, and risk?",
@@ -698,7 +698,7 @@ def get_interview_questions(role):
         "How do you conduct risk assessment and management?"
     ],
     
-    "GraphQL": [
+    "graphql": [
         "What is GraphQL and how does it differ from REST?",
         "Explain the core concepts of GraphQL (Schema, Types, Resolvers).",
         "What are queries, mutations, and subscriptions in GraphQL?",
@@ -716,7 +716,7 @@ def get_interview_questions(role):
         "What are the best practices for GraphQL API design?"
     ],
     
-    "Go": [
+    "go": [
         "What is Go (Golang) and its key features?",
         "Explain the Go workspace and project structure.",
         "What are goroutines and how do they work?",
@@ -734,7 +734,7 @@ def get_interview_questions(role):
         "What are the best practices for Go development?"
     ],
     
-    "Blockchain": [
+    "blockchain": [
         "What is blockchain and how does it work?",
         "Explain the key components of a blockchain (blocks, transactions, hash).",
         "What is the difference between public, private, and consortium blockchains?",
@@ -752,7 +752,7 @@ def get_interview_questions(role):
         "How do you develop and deploy smart contracts?"
     ],
     
-    "Apache Kafka": [
+    "apache kafka": [
         "What is Apache Kafka and its key features?",
         "Explain the Kafka architecture (brokers, topics, partitions).",
         "What are producers and consumers in Kafka?",
@@ -770,7 +770,7 @@ def get_interview_questions(role):
         "What are the common Kafka use cases and patterns?"
     ],
     
-    "Elasticsearch": [
+    "elasticsearch": [
         "What is Elasticsearch and its key features?",
         "Explain the architecture of Elasticsearch (nodes, indices, shards).",
         "What is the difference between Elasticsearch, Logstash, and Kibana (ELK stack)?",
@@ -786,8 +786,8 @@ def get_interview_questions(role):
         "How do you backup and restore Elasticsearch data?",
         "What are the security features in Elasticsearch?",
         "What are the common use cases for Elasticsearch?"
-    ]   
-    }
+    ]
+}
     return questions.get(role.lower(), ["Tell me about yourself.", "Why do you want this job?", "What are your strengths and weaknesses?"])
 
 def transcribe_audio(audio_file_path):
