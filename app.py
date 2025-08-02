@@ -998,8 +998,7 @@ with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as de
             audio_input = gr.Audio(
                 label="🎤 Record Your Answer",
                 type="filepath",
-                source="microphone", # Explicitly state source
-                streaming=False      # Explicitly state streaming mode
+                     # Explicitly state streaming mode
             )
             transcribe_btn = gr.Button("🚀 Submit & Get Feedback")
         # Output sections
