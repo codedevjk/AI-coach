@@ -6,6 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import numpy as np
 import librosa
 import time
+import warnings
 
 # --- Configuration for Cache Directories (ADD THIS BLOCK FIRST) ---
 # Set cache directories to a writable location within the container
@@ -806,6 +807,15 @@ def analyze_audio_features(audio_file_path):
     if not audio_file_path or not os.path.exists(audio_file_path):
         return {"pace": "N/A", "filler_words": 0}
     try:
+        # --- Disable Librosa Cache (Fix for Hugging Face Spaces) ---
+        # The librosa cache can fail in containerized environments.
+        # We explicitly disable it to prevent the '__o_fold' error.
+        import librosa.core
+        librosa.core.cache_level = 0 # Disable cache
+        # Suppress the specific warning that might still appear
+        warnings.filterwarnings("ignore", message=".*cannot cache function '__o_fold'.*")
+        # -----------------------------------------------------------
+
         # Load audio file
         y, sr = librosa.load(audio_file_path, sr=None)
         # Calculate duration
@@ -819,7 +829,6 @@ def analyze_audio_features(audio_file_path):
         # Count filler words (basic example)
         filler_words = ["um", "uh", "like", "you know", "so", "basically"]
         filler_count = sum(1 for word in words if word.lower() in filler_words)
-
         return {"pace": f"{pace:.2f} words/sec", "filler_words": filler_count}
     except Exception as e:
         error_msg = f"Error: {e}"
