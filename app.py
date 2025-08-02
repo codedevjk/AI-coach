@@ -845,7 +845,9 @@ custom_theme = gr.themes.Soft(
 
 def process_interview(role, question, audio_file):
     """Main processing function that ties everything together."""
-    print(f"DEBUG: process_interview called with audio_file={audio_file}") # Add this
+    print(f"DEBUG: process_interview called. Received audio_file path: '{audio_file}'") # Add this line
+    print(f"DEBUG: File exists? {os.path.exists(audio_file) if audio_file else 'No path provided'}") # Add this line
+    # ... rest of the function
     start_time = time.time()
     transcription = transcribe_audio(audio_file)
     # Removed audio_features call
@@ -987,10 +989,18 @@ with gr.Blocks(title="🎙️ AI Interview Simulator", theme=custom_theme) as de
     
     # Audio input section
 # Inside your Gradio Blocks layout, near the audio input:
+    # Inside your Gradio Blocks layout, near the audio input:
     with gr.Row():
         with gr.Column():
-            gr.Markdown("**Instructions:** Record your answer and click 'Submit & Get Feedback' immediately.")
-            audio_input = gr.Audio(label="🎤 Record Your Answer", type="filepath", autoplay=False, show_download_button=True)
+            # Add very clear instructions
+            gr.Markdown("**🚨 Critical Workflow:**\n1. Click the red 'Record' button.\n2. Speak your answer.\n3. Click the 'Stop' button.\n4. **Click 'Submit & Get Feedback' immediately.**\n\nThe recording will disappear visually after stopping, but the system needs you to submit right away to process it.")
+            # Apply the updated audio component
+            audio_input = gr.Audio(
+                label="🎤 Record Your Answer",
+                type="filepath",
+                source="microphone", # Explicitly state source
+                streaming=False      # Explicitly state streaming mode
+            )
             transcribe_btn = gr.Button("🚀 Submit & Get Feedback")
         # Output sections
     with gr.Column():
