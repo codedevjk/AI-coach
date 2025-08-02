@@ -821,11 +821,11 @@ def analyze_audio_features(audio_file_path):
         filler_count = sum(1 for word in words if word.lower() in filler_words)
 
         return {"pace": f"{pace:.2f} words/sec", "filler_words": filler_count}
-   except Exception as e:
-    error_msg = f"Error: {e}"
-    print(f"Error analyzing audio features: {e}")
-    # Returning the error message can help diagnose UI issues faster
-    return {"pace": error_msg, "filler_words": error_msg}
+    except Exception as e:
+        error_msg = f"Error: {e}"
+        print(f"Error analyzing audio features: {e}")
+        # Returning the error message can help diagnose UI issues faster
+        return {"pace": error_msg, "filler_words": error_msg}
 
 def generate_feedback(question, answer, role):
     """Generates feedback using the LLM."""
